@@ -625,7 +625,11 @@ issues.
 ==============================================================
 */
 
+#ifdef STANDALONE
+#define BASEGAME "foobar"
+#else
 #define BASEGAME "main"
+#endif
 
 // referenced flags
 // these are in loop specific order so don't change the order

@@ -47,6 +47,10 @@ void myglMultiTexCoord2f( GLenum texture, GLfloat s, GLfloat t )
 }
 #endif
 
+#ifdef __EMSCRIPTEN__
+#include <gl4esinit.h>
+#endif
+
 typedef enum
 {
 	RSERR_OK,
@@ -309,12 +313,20 @@ static qboolean GLimp_GetProcAddresses( qboolean fixedFunction ) {
 #ifdef __SDL_NOGETPROCADDR__
 #define GLE( ret, name, ... ) qgl##name = gl#name;
 #else
+#ifdef __EMSCRIPTEN__
+#define GLE( ret, name, ... ) qgl##name = (name##proc *) gl4es_GetProcAddress("gl" #name); \
+	if ( qgl##name == NULL ) { \
+		ri.Printf( PRINT_ALL, "ERROR: Missing OpenGL function %s\n", "gl" #name ); \
+		success = qfalse; \
+	}
+#else
 #define GLE( ret, name, ... ) qgl##name = (name##proc *) SDL_GL_GetProcAddress("gl" #name); \
 	if ( qgl##name == NULL ) { \
 		ri.Printf( PRINT_ALL, "ERROR: Missing OpenGL function %s\n", "gl" #name ); \
 		success = qfalse; \
 	}
-#endif
+#endif // __EMSCRIPTEN__
+#endif // __SDL_NOGETPROCADDR__
 
 	// OpenGL 1.0 and OpenGL ES 1.0
 	GLE(const GLubyte *, GetString, GLenum name)
@@ -802,10 +814,13 @@ static int GLimp_SetMode(int mode, qboolean fullscreen, qboolean noborder, qbool
 		qglClear( GL_COLOR_BUFFER_BIT );
 		SDL_GL_SwapWindow( SDL_window );
 
+#ifndef __EMSCRIPTEN__
+		// Never change this in WASM, always use requestAnimationFrame()
 		if( SDL_GL_SetSwapInterval( r_swapInterval->integer ) == -1 )
 		{
 			ri.Printf( PRINT_DEVELOPER, "SDL_GL_SetSwapInterval failed: %s\n", SDL_GetError( ) );
 		}
+#endif
 
 		SDL_GL_GetAttribute( SDL_GL_RED_SIZE, &realColorBits[0] );
 		SDL_GL_GetAttribute( SDL_GL_GREEN_SIZE, &realColorBits[1] );
@@ -1223,6 +1238,12 @@ void GLimp_EndFrame( void )
 
 	if( r_fullscreen->modified )
 	{
+#ifdef __EMSCRIPTEN__
+		if( r_fullscreen->integer) {
+			ri.Printf( PRINT_ALL, "Fullscreen not allowed in WASM.\n");
+			ri.Cvar_Set( "r_fullscreen", "0" );
+		}
+#else
 		int         fullscreen;
 		qboolean    needToToggle;
 
@@ -1255,6 +1276,7 @@ void GLimp_EndFrame( void )
 
 			ri.IN_Restart( );
 		}
+#endif
 
 		r_fullscreen->modified = qfalse;
 	}

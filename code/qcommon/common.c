@@ -2166,6 +2166,11 @@ static void Com_DetectAltivec(void)
 }
 
 void Com_SetRecommended( qboolean vidrestart ) {
+#ifdef __EMSCRIPTEN__
+	Com_Printf( "Setting default WASM video configuration\n" );
+	Cbuf_AddText( "exec wasmvid.cfg\n" );
+	Cvar_Set( "ui_glCustom", "999" ); // Change choice to 'Recommended'
+#else
 	cvar_t *cv;
 	qboolean goodVideo;
 	qboolean goodCPU;
@@ -2202,6 +2207,8 @@ void Com_SetRecommended( qboolean vidrestart ) {
 			Cvar_Set( "r_lowMemTextureThreshold", "40.0" );
 		}
 	}
+#endif
+
 	if ( vidrestart ) {
 		Cbuf_AddText( "vid_restart\n" );
 	}
@@ -2280,6 +2287,14 @@ void Com_Init( char *commandLine ) {
 	int	qport;
 
 	Com_Printf( "%s %s %s\n", Q3_VERSION, PLATFORM_STRING, PRODUCT_DATE );
+
+#ifdef __EMSCRIPTEN__
+	Com_Printf(
+		"Return to Castle Wolfenstein by id Software\n"
+		"Based on the source from iortcw\n"
+		"WASM build by Gregory Maynard-Hoare\n\n"
+	);
+#endif
 
 	if ( setjmp( abortframe ) ) {
 		Sys_Error( "Error during initialization" );
@@ -2363,7 +2378,11 @@ void Com_Init( char *commandLine ) {
 	// init commands and vars
 	//
 	com_altivec = Cvar_Get ("com_altivec", "1", CVAR_ARCHIVE);
+#ifdef __EMSCRIPTEN__
+	com_maxfps = Cvar_Get( "com_maxfps", "0", CVAR_ROM );
+#else
 	com_maxfps = Cvar_Get( "com_maxfps", "76", CVAR_ARCHIVE );
+#endif
 	com_blood = Cvar_Get( "com_blood", "1", CVAR_ARCHIVE );
 
 	com_logfile = Cvar_Get( "logfile", "0", CVAR_TEMP );

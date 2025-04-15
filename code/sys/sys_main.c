@@ -47,6 +47,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../qcommon/q_shared.h"
 #include "../qcommon/qcommon.h"
 
+#ifdef __EMSCRIPTEN__
+#include <emscripten.h>
+#endif
+
 static char binaryPath[ MAX_OSPATH ] = { 0 };
 static char installPath[ MAX_OSPATH ] = { 0 };
 
@@ -282,6 +286,10 @@ Single exit point (regular exit or in case of error)
 */
 static __attribute__ ((noreturn)) void Sys_Exit( int exitCode )
 {
+#ifdef __EMSCRIPTEN__
+	emscripten_cancel_main_loop();
+#endif
+
 	CON_Shutdown( );
 
 #ifndef DEDICATED
@@ -759,10 +767,15 @@ int main( int argc, char **argv )
 	signal( SIGTERM, Sys_SigHandler );
 	signal( SIGINT, Sys_SigHandler );
 
+#ifdef __EMSCRIPTEN__
+	// Com_Frame() takes and returns no args, so no need to wrap it
+	emscripten_set_main_loop(Com_Frame, 0, 0);
+#else
 	while( 1 )
 	{
 		Com_Frame( );
 	}
+#endif
 
 	return 0;
 }

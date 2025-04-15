@@ -3360,14 +3360,22 @@ void CL_InitRef( void ) {
 #ifdef USE_RENDERER_DLOPEN
 	cl_renderer = Cvar_Get("cl_renderer", "opengl1", CVAR_ARCHIVE | CVAR_LATCH);
 
+#ifdef __EMSCRIPTEN__
+	Com_sprintf(dllName, sizeof(dllName), "renderer_sp_%s" DLL_EXT, cl_renderer->string);
+#else
 	Com_sprintf(dllName, sizeof(dllName), "renderer_sp_%s_" ARCH_STRING DLL_EXT, cl_renderer->string);
+#endif
 
 	if(!(rendererLib = Sys_LoadDll(dllName, qfalse)) && strcmp(cl_renderer->string, cl_renderer->resetString))
 	{
 		Com_Printf("failed:\n\"%s\"\n", Sys_LibraryError());
 		Cvar_ForceReset("cl_renderer");
 
+#ifdef __EMSCRIPTEN__
+		Com_sprintf(dllName, sizeof(dllName), "renderer_sp_opengl1" DLL_EXT);
+#else
 		Com_sprintf(dllName, sizeof(dllName), "renderer_sp_opengl1_" ARCH_STRING DLL_EXT);
+#endif
 		rendererLib = Sys_LoadDll(dllName, qfalse);
 	}
 

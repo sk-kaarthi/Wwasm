@@ -4477,7 +4477,12 @@ static void UI_Update( const char *name ) {
 			trap_Cvar_Set( "r_texturemode", "GL_LINEAR_MIPMAP_LINEAR" );
 			trap_Cvar_SetValue( "r_ext_compressed_textures", 0 );
 			trap_Cvar_SetValue( "r_overBrightBits", 0 );
+#ifdef __EMSCRIPTEN__
+			trap_Cvar_Set( "cl_renderer", "opengl1" );
+#else
 			trap_Cvar_Set( "cl_renderer", "rend2" );
+
+			// Cvars specific to rend2 renderer
 			trap_Cvar_SetValue( "r_hdr", 1 );
 			trap_Cvar_SetValue( "r_postProcess", 1 );
 			trap_Cvar_SetValue( "r_toneMap", 1 );
@@ -4489,6 +4494,7 @@ static void UI_Update( const char *name ) {
 			trap_Cvar_SetValue( "r_drawSunRays", 1 );
 			trap_Cvar_SetValue( "r_sunShadows", 1 );
 			trap_Cvar_SetValue( "r_shadowFilter", 1 );
+#endif
 #ifdef USE_BLOOM
 			trap_Cvar_SetValue( "r_bloom", 1 );
 #endif

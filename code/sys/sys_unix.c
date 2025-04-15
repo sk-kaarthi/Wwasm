@@ -546,6 +546,11 @@ Block execution for msec or until input is recieved.
 */
 void Sys_Sleep( int msec )
 {
+#ifdef __EMSCRIPTEN__
+	// Timing is handled per-frame by the browser
+	return;
+#endif
+
 	if( msec == 0 )
 		return;
 
@@ -902,6 +907,13 @@ Unix specific initialisation
 */
 void Sys_PlatformInit( void )
 {
+#ifdef __EMSCRIPTEN__
+	// Async terminal input during engine boot is unsupported, because the
+	// first input currently accepted is when frames start rendering
+	stdinIsATTY = qfalse;
+	return;
+#endif
+
 	const char* term = getenv( "TERM" );
 
 	signal( SIGHUP, Sys_SigHandler );
@@ -1018,7 +1030,11 @@ Sys_GetDLLName
 ==============
 */
 char* Sys_GetDLLName( const char *name ) {
+#ifdef __EMSCRIPTEN__
+	return va("%s_sp" DLL_EXT, name);
+#else
 	return va("%s.sp." ARCH_STRING DLL_EXT, name);
+#endif
 }
 
 /*

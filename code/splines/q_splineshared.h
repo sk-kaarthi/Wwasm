@@ -51,7 +51,11 @@ If you have questions concerning this license or the applicable additional terms
   #define GAMENAME_FOR_MASTER		"foobar"	// must NOT contain whitespace
 //  #define LEGACY_PROTOCOL	// You probably don't need this for your standalone game
 #else
-  #define PRODUCT_NAME			"iortcw"
+  #ifdef __EMSCRIPTEN__
+    #define PRODUCT_NAME		"Wwasm"
+  #else
+    #define PRODUCT_NAME		"iortcw"
+  #endif
   #define BASEGAME			"main"
   #define CLIENT_WINDOW_TITLE     	"Return To Castle Wolfenstein"
   #define CLIENT_WINDOW_MIN_TITLE 	"iowolfsp"

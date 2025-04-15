@@ -3,8 +3,40 @@
 #
 # GNU Make required
 #
-COMPILE_PLATFORM=$(shell uname | sed -e 's/_.*//' | tr '[:upper:]' '[:lower:]' | sed -e 's/\//_/g')
-COMPILE_ARCH=$(shell uname -m | sed -e 's/i.86/x86/')
+ifdef EMSCRIPTEN
+  # Set version/platform information
+  VERSION          = 1.00-SP
+  COMPILE_PLATFORM = emscripten
+  COMPILE_ARCH     = wasm
+
+  # Statically link the renderer to the main binary unless otherwise specified
+  USE_RENDERER_DLOPEN ?= 0
+
+  # Set up GL4ES path (position-independent version as appropriate)
+  ifneq ($(USE_RENDERER_DLOPEN),0)
+    GL4ES_PATH ?= /home/user/gl4es_pic
+  else
+    GL4ES_PATH ?= /home/user/gl4es
+  endif
+
+  # Do not attempt gamecode native WASM binary build -- use QVM by default
+  WASM_NATIVE_GAMECODE ?= 0
+
+  # Bloom is currently incompatible with GL4ES
+  USE_BLOOM = 0
+
+  # Disable features not needed by default
+  USE_CODEC_VORBIS ?= 0
+  USE_CODEC_OPUS ?= 0
+  USE_FREETYPE ?= 0
+  USE_MUMBLE ?= 0
+  USE_OPENAL ?= 0
+  USE_OPENAL_DLOPEN ?= 0
+  USE_VOIP ?= 0
+else
+  COMPILE_PLATFORM=$(shell uname | sed -e 's/_.*//' | tr '[:upper:]' '[:lower:]' | sed -e 's/\//_/g')
+  COMPILE_ARCH=$(shell uname -m | sed -e 's/i.86/x86/')
+endif
 
 ifeq ($(COMPILE_PLATFORM),sunos)
   # Solaris uname and GNU uname differ
@@ -118,10 +150,14 @@ VERSION=1.51d-SP
 endif
 
 ifndef CLIENTBIN
- ifdef MINGW
-    CLIENTBIN=ioWolfSP
+  ifdef EMSCRIPTEN
+    CLIENTBIN=index
   else
-    CLIENTBIN=iowolfsp
+    ifdef MINGW
+      CLIENTBIN=ioWolfSP
+    else
+      CLIENTBIN=iowolfsp
+    endif
   endif
 endif
 
@@ -307,6 +343,9 @@ ifneq ($(BUILD_CLIENT),0)
   # set PKG_CONFIG_PATH or PKG_CONFIG to influence this, e.g.
   # PKG_CONFIG_PATH=/opt/cross/i386-mingw32msvc/lib/pkgconfig or
   # PKG_CONFIG=arm-linux-gnueabihf-$(PKG_CONFIG)
+  ifdef EMSCRIPTEN
+    PKG_CONFIG ?= unknown-pkg-config
+  else
   ifeq ($(CROSS_COMPILING),0)
     PKG_CONFIG ?= pkg-config
   else
@@ -338,8 +377,10 @@ ifneq ($(BUILD_CLIENT),0)
       SDL_LIBS = $(shell sdl2-config --libs)
     endif
   endif
+  endif # EMSCRIPTEN
 endif
 
+ifndef EMSCRIPTEN
 # Add git version info
 USE_GIT=
 ifeq ($(wildcard ../.git),../.git)
@@ -349,6 +390,7 @@ ifeq ($(wildcard ../.git),../.git)
     USE_GIT=1
   endif
 endif
+endif # !EMSCRIPTEN
 
 
 #############################################################################
@@ -1029,6 +1071,65 @@ ifeq ($(PLATFORM),sunos)
 else # ifeq sunos
 
 #############################################################################
+# SETUP AND BUILD -- Emscripten
+#############################################################################
+
+ifeq ($(PLATFORM),emscripten)
+
+  # Set up export types and exclude incompatible code
+  SHLIBNAME = wasm
+  SHLIBEXT = wasm
+  FULLBINEXT = .html
+  BUILD_RENDERER_REND2 = 0
+
+  # Optimisation settings
+  OPTIMIZEVM = -O3
+  OPTIMIZE = $(OPTIMIZEVM)
+  LDFLAGS += $(OPTIMIZE)
+
+  # Default shared libs settings (CFLAGS are included in the build by default,
+  # but LDFLAGS are not)
+  SHLIBCFLAGS =
+  SHLIBLDFLAGS = $(LDFLAGS)
+
+  # Client / native game C flags
+  BASE_CFLAGS = -Wall -Wno-unused-function -Wno-deprecated-non-prototype \
+    -Wno-unused-but-set-variable
+  BOTCFLAGS =
+
+  # Client-specific flags (also used by renderer, whether integrated or not)
+  CLIENT_CFLAGS += -sUSE_SDL=2 -I$(GL4ES_PATH)/include
+  CLIENT_LIBS += -sUSE_SDL=2 $(GL4ES_PATH)/lib/libGL.a
+  CLIENT_LDFLAGS += -sFULL_ES2=1 -sINITIAL_MEMORY=128MB -sTOTAL_STACK=4MB \
+    -sALLOW_MEMORY_GROWTH --preload-file=wasm/fs/@/
+
+  ifneq ($(USE_RENDERER_DLOPEN),0)
+    # Help Emscripten locate the dynamic renderer library
+    CLIENT_LDFLAGS += $(B)/renderer_sp_opengl1.$(SHLIBNAME)
+  endif
+
+  ifneq ($(WASM_NATIVE_GAMECODE),0)
+    # The client should handle dynamic native gamecode
+    CLIENT_CFLAGS += -DWASM_NATIVE_GAMECODE
+
+    # Help Emscripten locate the dynamic gamecode libraries
+    CLIENT_LDFLAGS += $(B)/$(BASEGAME)_cgame_sp.$(SHLIBNAME) \
+      $(B)/$(BASEGAME)_qagame_sp.$(SHLIBNAME) \
+      $(B)/$(BASEGAME)_ui_sp.$(SHLIBNAME)
+  endif
+
+  ifneq ($(or $(USE_RENDERER_DLOPEN),$(WASM_NATIVE_GAMECODE)),0)
+    # Dynamic libs are present, so ensure compiled code is position-independent
+    CLIENT_CFLAGS += -fPIC
+    CLIENT_LDFLAGS += -sMAIN_MODULE=2
+    SHLIBCFLAGS += -fPIC
+    SHLIBLDFLAGS += -sSIDE_MODULE=1
+    BOTCFLAGS += -fPIC
+  endif
+
+else # ifeq emscripten
+
+#############################################################################
 # SETUP AND BUILD -- GENERIC
 #############################################################################
   BASE_CFLAGS=
@@ -1038,14 +1139,15 @@ else # ifeq sunos
   SHLIBCFLAGS=-fPIC
   SHLIBLDFLAGS=-shared
 
-endif #Linux
-endif #darwin
-endif #MINGW
-endif #FreeBSD
-endif #OpenBSD
-endif #NetBSD
-endif #IRIX
-endif #SunOS
+endif # Emscripten
+endif # SunOS
+endif # IRIX
+endif # NetBSD
+endif # OpenBSD
+endif # FreeBSD
+endif # MINGW
+endif # Darwin
+endif # Linux
 
 ifndef CC
   CC=gcc
@@ -1108,6 +1210,7 @@ ifneq ($(BUILD_SERVER),0)
   TARGETS += $(B)/$(SERVERBIN)$(FULLBINEXT)
 endif
 
+ifndef EMSCRIPTEN
 ifneq ($(BUILD_CLIENT),0)
   ifneq ($(USE_RENDERER_DLOPEN),0)
     TARGETS += $(B)/$(CLIENTBIN)$(FULLBINEXT) $(B)/renderer_sp_opengl1_$(SHLIBNAME)
@@ -1137,6 +1240,7 @@ ifneq ($(BUILD_GAME_SO),0)
    endif
   endif
 endif
+endif # !EMSCRIPTEN
 
 ifneq ($(BUILD_GAME_QVM),0)
   ifneq ($(BUILD_BASEGAME),0)
@@ -1146,6 +1250,23 @@ ifneq ($(BUILD_GAME_QVM),0)
     $(B)/$(BASEGAME)/vm/ui.sp.qvm
   endif
 endif
+
+ifdef EMSCRIPTEN
+  ifneq ($(USE_RENDERER_DLOPEN),0)
+    # Target dynamically linked renderer
+    TARGETS += $(B)/renderer_sp_opengl1.$(SHLIBNAME)
+  endif
+
+  ifneq ($(WASM_NATIVE_GAMECODE),0)
+    # Target dynamically linked gamecode
+    TARGETS += $(B)/$(BASEGAME)_cgame_sp.$(SHLIBNAME) \
+      $(B)/$(BASEGAME)_qagame_sp.$(SHLIBNAME) \
+      $(B)/$(BASEGAME)_ui_sp.$(SHLIBNAME)
+  endif
+
+  # Target main executable
+  TARGETS += $(B)/$(CLIENTBIN)$(FULLBINEXT)
+endif # EMSCRIPTEN
 
 ifeq ($(USE_OPENAL),1)
   CLIENT_CFLAGS += -DUSE_OPENAL
@@ -2327,6 +2448,12 @@ $(B)/$(CLIENTBIN)$(FULLBINEXT): $(Q3OBJ) $(LIBSDLMAIN)
 		-o $@ $(Q3OBJ) \
 		$(LIBSDLMAIN) $(CLIENT_LIBS) $(LIBS)
 
+ifdef EMSCRIPTEN
+$(B)/renderer_sp_opengl1.$(SHLIBNAME): $(Q3ROBJ) $(JPGOBJ) $(FTOBJ)
+	$(echo_cmd) "LD $@"
+	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3ROBJ) $(JPGOBJ) $(FTOBJ) \
+		$(THREAD_LIBS) $(LIBSDLMAIN) $(RENDERER_LIBS) $(LIBS)
+else
 $(B)/renderer_sp_opengl1_$(SHLIBNAME): $(Q3ROBJ) $(JPGOBJ) $(FTOBJ)
 	$(echo_cmd) "LD $@"
 	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3ROBJ) $(JPGOBJ) $(FTOBJ) \
@@ -2336,6 +2463,8 @@ $(B)/renderer_sp_rend2_$(SHLIBNAME): $(Q3R2OBJ) $(Q3R2STRINGOBJ) $(JPGOBJ) $(FTO
 	$(echo_cmd) "LD $@"
 	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3R2OBJ) $(Q3R2STRINGOBJ) $(JPGOBJ) $(FTOBJ) \
 		$(THREAD_LIBS) $(LIBSDLMAIN) $(RENDERER_LIBS) $(LIBS)
+endif # EMSCRIPTEN
+
 else
 $(B)/$(CLIENTBIN)$(FULLBINEXT): $(Q3OBJ) $(Q3ROBJ) $(JPGOBJ) $(FTOBJ) $(LIBSDLMAIN)
 	$(echo_cmd) "LD $@"
@@ -2545,10 +2674,16 @@ $(B)/$(BASEGAME)/cgame_sp_$(SHLIBNAME): $(Q3CGOBJ)
 	$(echo_cmd) "LD $@"
 	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3CGOBJ) $(LIBS)
 else
+ifdef EMSCRIPTEN
+$(B)/$(BASEGAME)_cgame_sp.$(SHLIBNAME): $(Q3CGOBJ)
+	$(echo_cmd) "LD $@"
+	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3CGOBJ) $(LIBS)
+else
 $(B)/$(BASEGAME)/cgame.sp.$(SHLIBNAME): $(Q3CGOBJ)
 	$(echo_cmd) "LD $@"
 	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3CGOBJ) $(LIBS)
-endif
+endif # EMSCRIPTEN
+endif # MINGW
 $(B)/$(BASEGAME)/vm/cgame.sp.qvm: $(Q3CGVMOBJ) $(CGDIR)/cg_syscalls.asm $(Q3ASM)
 	$(echo_cmd) "Q3ASM $@"
 	$(Q)$(Q3ASM) -o $@ $(Q3CGVMOBJ) $(CGDIR)/cg_syscalls.asm
@@ -2620,10 +2755,16 @@ $(B)/$(BASEGAME)/qagame_sp_$(SHLIBNAME): $(Q3GOBJ)
 	$(echo_cmd) "LD $@"
 	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3GOBJ) $(LIBS)
 else
+ifdef EMSCRIPTEN
+$(B)/$(BASEGAME)_qagame_sp.$(SHLIBNAME): $(Q3GOBJ)
+	$(echo_cmd) "LD $@"
+	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3GOBJ) $(LIBS)
+else
 $(B)/$(BASEGAME)/qagame.sp.$(SHLIBNAME): $(Q3GOBJ)
 	$(echo_cmd) "LD $@"
 	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3GOBJ) $(LIBS)
-endif
+endif # EMSCRIPTEN
+endif # MINGW
 $(B)/$(BASEGAME)/vm/qagame.sp.qvm: $(Q3GVMOBJ) $(GDIR)/g_syscalls.asm $(Q3ASM)
 	$(echo_cmd) "Q3ASM $@"
 	$(Q)$(Q3ASM) -o $@ $(Q3GVMOBJ) $(GDIR)/g_syscalls.asm
@@ -2654,10 +2795,16 @@ $(B)/$(BASEGAME)/ui_sp_$(SHLIBNAME): $(Q3UIOBJ)
 	$(echo_cmd) "LD $@"
 	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3UIOBJ) $(LIBS)
 else
+ifdef EMSCRIPTEN
+$(B)/$(BASEGAME)_ui_sp.$(SHLIBNAME): $(Q3UIOBJ)
+	$(echo_cmd) "LD $@"
+	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3UIOBJ) $(LIBS)
+else
 $(B)/$(BASEGAME)/ui.sp.$(SHLIBNAME): $(Q3UIOBJ)
 	$(echo_cmd) "LD $@"
 	$(Q)$(CC) $(CFLAGS) $(SHLIBLDFLAGS) -o $@ $(Q3UIOBJ) $(LIBS)
-endif
+endif # EMSCRIPTEN
+endif # MINGW
 $(B)/$(BASEGAME)/vm/ui.sp.qvm: $(Q3UIVMOBJ) $(UIDIR)/ui_syscalls.asm $(Q3ASM)
 	$(echo_cmd) "Q3ASM $@"
 	$(Q)$(Q3ASM) -o $@ $(Q3UIVMOBJ) $(UIDIR)/ui_syscalls.asm
