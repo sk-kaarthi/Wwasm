@@ -63,13 +63,18 @@ Sys_DefaultHomePath
 */
 char *Sys_DefaultHomePath(void)
 {
+#ifndef __EMSCRIPTEN__
 	char *p1;
+#endif
 #ifdef USE_XDG
 	char *p2;
 #endif
 
 	if( !*homePath && com_homepath != NULL )
 	{
+#ifdef __EMSCRIPTEN__
+		Com_sprintf(homePath, sizeof(homePath), "/wwasm");
+#else
 #ifdef __APPLE__
 		if( ( p1 = getenv( "HOME" ) ) != NULL )
 		{
@@ -114,6 +119,7 @@ char *Sys_DefaultHomePath(void)
 		}
 #endif // USE_XDG
 #endif // __APPLE__
+#endif // __EMSCRIPTEN__
 	}
 
 	return homePath;

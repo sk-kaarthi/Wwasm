@@ -5,7 +5,7 @@
 #
 ifdef EMSCRIPTEN
   # Set version/platform information
-  VERSION          = 1.00-SP
+  VERSION          = 1.10-SP
   COMPILE_PLATFORM = emscripten
   COMPILE_ARCH     = wasm
 
@@ -1101,7 +1101,7 @@ ifeq ($(PLATFORM),emscripten)
   CLIENT_CFLAGS += -sUSE_SDL=2 -I$(GL4ES_PATH)/include
   CLIENT_LIBS += -sUSE_SDL=2 $(GL4ES_PATH)/lib/libGL.a
   CLIENT_LDFLAGS += -sFULL_ES2=1 -sINITIAL_MEMORY=128MB -sTOTAL_STACK=4MB \
-    -sALLOW_MEMORY_GROWTH --shell-file wasm/shell.html \
+    -sALLOW_MEMORY_GROWTH -lidbfs.js --shell-file wasm/shell.html \
     --preload-file=wasm/fs/@/
 
   ifneq ($(USE_RENDERER_DLOPEN),0)
@@ -2432,6 +2432,11 @@ else
     $(B)/client/sys_unix.o
 endif
 
+ifdef EMSCRIPTEN
+  Q3OBJ += \
+    $(B)/client/wasm_io.o
+endif
+
 ifeq ($(PLATFORM),darwin)
   Q3OBJ += \
     $(B)/client/sys_osx.o
@@ -2616,6 +2621,11 @@ else
   Q3DOBJ += \
     $(B)/ded/sys_unix.o \
     $(B)/ded/con_tty.o
+endif
+
+ifdef EMSCRIPTEN
+  Q3DOBJ += \
+    $(B)/ded/wasm_io.o
 endif
 
 ifeq ($(PLATFORM),darwin)

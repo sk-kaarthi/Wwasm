@@ -1,0 +1,18 @@
+/*
+ * WASM IO support headers
+ *
+ * Based on the Return to Castle Wolfenstein GPL Source Code
+ * Copyright (C) 1999–2010 id Software LLC, a ZeniMax Media company.
+ *
+ * Additional modifications Copyright (C) 2025 Gregory Maynard-Hoare
+ *
+ * For license details, see the COPYING.txt file included with this project.
+ */
+
+#ifndef __WASM_IO__
+#define __WASM_IO__
+
+void wasm_init_fs(void);
+int wasm_restore_busy(void);
+
+#endif // !__WASM_IO__

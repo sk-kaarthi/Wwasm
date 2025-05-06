@@ -2740,8 +2740,12 @@ void Com_Frame( void ) {
 	timeAfter = 0;
 
 
-	// write config file if anything changed
+#ifndef __EMSCRIPTEN__
+	// Write config file if any archive cvars have changed.  If we are using
+	// Emscripten, per-frame checks and FS syncs on changes appear to be too
+	// frequent and can cause warnings about queued writes.
 	Com_WriteConfiguration();
+#endif
 
 	//
 	// main event loop

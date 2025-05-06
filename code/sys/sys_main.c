@@ -49,10 +49,16 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten.h>
+#include "wasm_io.h"
 #endif
 
 static char binaryPath[ MAX_OSPATH ] = { 0 };
 static char installPath[ MAX_OSPATH ] = { 0 };
+
+#ifdef __EMSCRIPTEN__
+static int saved_argc = 0;
+static char **saved_argv = NULL;
+#endif
 
 /*
 =================
@@ -691,10 +697,10 @@ void Sys_SigHandler( int signal )
 
 /*
 =================
-main
+main_init
 =================
 */
-int main( int argc, char **argv )
+int main_init( int argc, char **argv )
 {
 	int   i;
 	char  commandLine[ MAX_STRING_CHARS ] = { 0 };
@@ -780,3 +786,35 @@ int main( int argc, char **argv )
 	return 0;
 }
 
+#ifdef __EMSCRIPTEN__
+/*
+=================
+main_await_fs
+=================
+*/
+void main_await_fs(void)
+{
+	if (wasm_restore_busy())
+		return;
+
+	emscripten_cancel_main_loop(); // Stop waiting for FS init
+	main_init(saved_argc, saved_argv); // Do not use return value
+}
+#endif
+
+/*
+=================
+main
+=================
+*/
+int main( int argc, char **argv )
+{
+#ifdef __EMSCRIPTEN__
+	saved_argc = argc;
+	saved_argv = argv;
+	wasm_init_fs();
+	emscripten_set_main_loop(main_await_fs, 0, 0);
+#else
+	return main_init(argc, argv);
+#endif
+}
