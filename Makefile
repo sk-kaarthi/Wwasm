@@ -1101,7 +1101,8 @@ ifeq ($(PLATFORM),emscripten)
   CLIENT_CFLAGS += -sUSE_SDL=2 -I$(GL4ES_PATH)/include
   CLIENT_LIBS += -sUSE_SDL=2 $(GL4ES_PATH)/lib/libGL.a
   CLIENT_LDFLAGS += -sFULL_ES2=1 -sINITIAL_MEMORY=128MB -sTOTAL_STACK=4MB \
-    -sALLOW_MEMORY_GROWTH --preload-file=wasm/fs/@/
+    -sALLOW_MEMORY_GROWTH --shell-file wasm/shell.html \
+    --preload-file=wasm/fs/@/
 
   ifneq ($(USE_RENDERER_DLOPEN),0)
     # Help Emscripten locate the dynamic renderer library
