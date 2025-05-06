@@ -2418,7 +2418,11 @@ void Com_Init( char *commandLine ) {
 
 	Cvar_Get( "savegame_loading", "0", CVAR_ROM );
 
+#ifdef __EMSCRIPTEN__
+	s = va("%s %s", Q3_VERSION, PRODUCT_DATE );
+#else
 	s = va("%s %s %s", Q3_VERSION, PLATFORM_STRING, PRODUCT_DATE );
+#endif
 	com_version = Cvar_Get ("version", s, CVAR_ROM | CVAR_SERVERINFO );
 	com_gamename = Cvar_Get("com_gamename", GAMENAME_FOR_MASTER, CVAR_SERVERINFO | CVAR_INIT);
 	com_protocol = Cvar_Get("com_protocol", va("%i", PROTOCOL_VERSION), CVAR_SERVERINFO | CVAR_INIT);
