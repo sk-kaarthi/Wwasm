@@ -60,3 +60,12 @@ void wasm_show_console(void)
 			Module.showConsole();
 	);
 }
+
+void wasm_capture_mouse(void)
+{
+	// Ensure the pointer is captured in the canvas
+	EM_ASM(
+		if (typeof Module.captureMouse === 'function')
+			Module.captureMouse();
+	);
+}

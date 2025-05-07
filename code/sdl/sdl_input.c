@@ -33,6 +33,10 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include "../client/client.h"
 #include "../sys/sys_local.h"
 
+#ifdef __EMSCRIPTEN__
+#include "../sys/wasm_io.h"
+#endif
+
 #if !SDL_VERSION_ATLEAST(2, 0, 17)
 #define KMOD_SCROLL KMOD_RESERVED
 #endif
@@ -355,6 +359,10 @@ static void IN_ActivateMouse( qboolean isFullscreen )
 		SDL_SetRelativeMouseMode( SDL_TRUE );
 		SDL_SetWindowGrab( SDL_window, SDL_TRUE );
 
+#ifdef __EMSCRIPTEN__
+		wasm_capture_mouse();
+#endif
+
 		IN_GobbleMotionEvents( );
 	}
 
@@ -369,6 +377,10 @@ static void IN_ActivateMouse( qboolean isFullscreen )
 			} else {
 				SDL_SetRelativeMouseMode( SDL_TRUE );
 				SDL_SetWindowGrab( SDL_window, SDL_TRUE );
+
+#ifdef __EMSCRIPTEN__
+				wasm_capture_mouse();
+#endif
 			}
 
 			in_nograb->modified = qfalse;

@@ -95,6 +95,7 @@
       }, false);
 
       var Module = {
+        _canLockPointer: true,
         print(...args) {
           // These replacements are necessary if you render to raw HTML
           //text = text.replace(/&/g, "&amp;");
@@ -141,6 +142,30 @@
           outputElement.style.display = 'block';
           outputElement.scrollTop = outputElement.scrollHeight;
           outputElement.focus();
+        },
+        captureMouse() {
+          if (Module._canLockPointer && !Module._attemptPointerLock()) {
+            // Unable to lock the pointer immediately, so do it when a key is pressed
+            Module._canLockPointer = false;
+            console.info('Delayed pointer lock requested.');
+            document.addEventListener('keydown', Module._lockPointerOnKey);
+          }
+        },
+        _attemptPointerLock() {
+          if (document.pointerLockElement === null) {
+            // Attempt a pointer lock now if there isn't one present
+            canvasElement.requestPointerLock();
+          }
+
+          return document.pointerLockElement !== null;
+        },
+        _lockPointerOnKey(event) {
+          if ((event.key === 'Escape') || Module._attemptPointerLock()) {
+            // Pointer successfully locked, or Esc pressed
+            document.removeEventListener('keydown', Module._lockPointerOnKey);
+            console.info('Delayed pointer lock complete.');
+            Module._canLockPointer = true;
+          }
         },
         totalDependencies: 0,
         monitorRunDependencies(left) {
