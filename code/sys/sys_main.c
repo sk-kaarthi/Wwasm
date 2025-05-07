@@ -294,6 +294,7 @@ static __attribute__ ((noreturn)) void Sys_Exit( int exitCode )
 {
 #ifdef __EMSCRIPTEN__
 	emscripten_cancel_main_loop();
+	wasm_show_console();
 #endif
 
 	CON_Shutdown( );
@@ -774,6 +775,8 @@ int main_init( int argc, char **argv )
 	signal( SIGINT, Sys_SigHandler );
 
 #ifdef __EMSCRIPTEN__
+	wasm_hide_console();
+
 	// Com_Frame() takes and returns no args, so no need to wrap it
 	emscripten_set_main_loop(Com_Frame, 0, 0);
 #else
