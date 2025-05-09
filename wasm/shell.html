@@ -143,6 +143,10 @@
           outputElement.scrollTop = outputElement.scrollHeight;
           outputElement.focus();
         },
+        winResized() {
+          // Add code to handle changes on canvas width and height, if necessary.  This function can safely be deleted.
+          console.info('Detected window resize: ' + canvasElement.width + 'x' + canvasElement.height);
+        },
         captureMouse() {
           if (Module._canLockPointer && !Module._attemptPointerLock()) {
             // Unable to lock the pointer immediately, so do it when a key is pressed

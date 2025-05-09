@@ -61,6 +61,15 @@ void wasm_show_console(void)
 	);
 }
 
+void wasm_vid_resize(void)
+{
+	// Notify JS after a resolution change
+	EM_ASM(
+		if (typeof Module.winResized === 'function')
+			Module.winResized();
+	);
+}
+
 void wasm_capture_mouse(void)
 {
 	// Ensure the pointer is captured in the canvas

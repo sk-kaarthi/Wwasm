@@ -48,6 +48,7 @@ void myglMultiTexCoord2f( GLenum texture, GLfloat s, GLfloat t )
 #endif
 
 #ifdef __EMSCRIPTEN__
+#include "../sys/wasm_io.h"
 #include <gl4esinit.h>
 #endif
 
@@ -1163,6 +1164,11 @@ void GLimp_Init( qboolean fixedFunction )
 	ri.Error( ERR_FATAL, "GLimp_Init() - could not load OpenGL subsystem" );
 
 success:
+#ifdef __EMSCRIPTEN__
+	// Notify frontend that it may need to resize to the new screen resolution
+	wasm_vid_resize();
+#endif
+
 	// These values force the UI to disable driver selection
 	glConfig.driverType = GLDRV_ICD;
 	glConfig.hardwareType = GLHW_GENERIC;
