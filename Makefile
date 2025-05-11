@@ -5,7 +5,7 @@
 #
 ifdef EMSCRIPTEN
   # Set version/platform information
-  VERSION          = 1.20-SP
+  VERSION          = 1.21-SP
   COMPILE_PLATFORM = emscripten
   COMPILE_ARCH     = wasm
 

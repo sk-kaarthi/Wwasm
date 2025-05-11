@@ -390,6 +390,9 @@ void QDECL Com_Error( int code, const char *fmt, ... ) {
 
 		com_errorEntered = qfalse;
 		longjmp( abortframe, -1 );
+	} else if ( code == ERR_MSG ) {
+		com_errorEntered = qfalse;
+		longjmp( abortframe, -1 );
 	} else {
 		VM_Forced_Unload_Start();
 		CL_Shutdown(va("Client fatal crashed: %s", com_errorMessage), qtrue, qtrue);

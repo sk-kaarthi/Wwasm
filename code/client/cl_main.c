@@ -1801,6 +1801,11 @@ void CL_Connect_f( void ) {
 
 #define MAX_RCON_MESSAGE 1024
 
+#ifdef __EMSCRIPTEN__
+#define WASM_VIDEO_RESTART_MSG "Please quit and restart the game to see video changes."
+#define WASM_AUDIO_RESTART_MSG "Please quit and restart the game to apply audio changes."
+#endif
+
 /*
 ==================
 CL_CompleteRcon
@@ -1906,6 +1911,18 @@ void CL_Vid_Restart_f( void ) {
 
 	vmCvar_t musicCvar;
 
+#ifdef __EMSCRIPTEN__
+	if (
+		!FS_ConditionalRestart(clc.checksumFeed, qtrue) &&
+		clc.state == CA_DISCONNECTED
+	)
+		Com_Error(ERR_MSG, WASM_VIDEO_RESTART_MSG);
+	else
+		Com_Printf(S_COLOR_YELLOW WASM_VIDEO_RESTART_MSG "\n");
+
+	return;
+#endif
+
 	// RF, don't show percent bar, since the memory usage will just sit at the same level anyway
 	Cvar_Set( "com_expectedhunkusage", "-1" );
 
@@ -2005,6 +2022,18 @@ handles will be invalid
 */
 void CL_Snd_Restart_f(void)
 {
+#ifdef __EMSCRIPTEN__
+	if (
+		!FS_ConditionalRestart(clc.checksumFeed, qtrue) &&
+		clc.state == CA_DISCONNECTED
+	)
+		Com_Error(ERR_MSG, WASM_AUDIO_RESTART_MSG);
+	else
+		Com_Printf(S_COLOR_YELLOW WASM_AUDIO_RESTART_MSG "\n");
+
+	return;
+#endif
+
 	CL_Snd_Shutdown();
 	// sound will be reinitialized by vid_restart
 	CL_Vid_Restart_f();

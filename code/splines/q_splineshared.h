@@ -330,7 +330,8 @@ typedef enum {
 	ERR_SERVERDISCONNECT,       // don't kill server
 	ERR_DISCONNECT,             // client disconnected from the server
 	ERR_NEED_CD,                // pop up the need-cd dialog
-	ERR_ENDGAME                 // not an error.  just clean up properly, exit to the menu, and start up the "endgame" menu  //----(SA)	added
+	ERR_ENDGAME,                // not an error.  just clean up properly, exit to the menu, and start up the "endgame" menu  //----(SA)	added
+	ERR_MSG                     // Just display a message
 } errorParm_t;
 
 
