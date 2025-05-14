@@ -1418,6 +1418,10 @@ NET_GetCvars
 static qboolean NET_GetCvars( void ) {
 	int modified;
 
+#ifdef __EMSCRIPTEN__
+	// Disable networking on single player by default
+	net_enabled = Cvar_Get( "net_enabled", "0", CVAR_LATCH | CVAR_ARCHIVE );
+#else
 #ifdef DEDICATED
 	// I want server owners to explicitly turn on ipv6 support.
 	net_enabled = Cvar_Get( "net_enabled", "1", CVAR_LATCH | CVAR_ARCHIVE );
@@ -1425,7 +1429,8 @@ static qboolean NET_GetCvars( void ) {
 	/* End users have it enabled so they can connect to ipv6-only hosts, but ipv4 will be
 	 * used if available due to ping */
 	net_enabled = Cvar_Get( "net_enabled", "3", CVAR_LATCH | CVAR_ARCHIVE );
-#endif
+#endif // DEDICATED
+#endif // __EMSCRIPTEN__
 	modified = net_enabled->modified;
 	net_enabled->modified = qfalse;
 
