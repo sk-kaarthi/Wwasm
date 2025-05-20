@@ -342,7 +342,7 @@ RB_TestFlare
 ==================
 */
 void RB_TestFlare( flare_t *f ) {
-#ifndef USE_OPENGLES
+#if !defined(USE_OPENGLES) && !defined(__EMSCRIPTEN__)
 	float			depth;
 #endif
 	qboolean		visible;
@@ -356,7 +356,7 @@ void RB_TestFlare( flare_t *f ) {
 	glState.finishCalled = qfalse;
 
 	// read back the z buffer contents
-#ifdef USE_OPENGLES
+#if defined(USE_OPENGLES) || defined(__EMSCRIPTEN__)
 	screenZ = 0;
 #else
 	qglReadPixels( f->windowX, f->windowY, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &depth );
