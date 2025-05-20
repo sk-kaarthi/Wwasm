@@ -772,6 +772,11 @@ void R_ScreenShot_f (void) {
 	static	int	lastNumber = -1;
 	qboolean	silent;
 
+#ifdef __EMSCRIPTEN__
+	Com_Printf("TARGA screenshots are disabled in Wwasm.\n");
+	return;
+#endif
+
 	if ( !strcmp( ri.Cmd_Argv( 1 ), "levelshot" ) ) {
 		R_LevelShot();
 		return;
@@ -824,6 +829,11 @@ void R_ScreenShotJPEG_f (void) {
 	char		checkname[MAX_OSPATH];
 	static	int	lastNumber = -1;
 	qboolean	silent;
+
+#ifdef __EMSCRIPTEN__
+	Com_Printf("JPEG screenshots are disabled in Wwasm.\n");
+	return;
+#endif
 
 	if ( !strcmp( ri.Cmd_Argv( 1 ), "levelshot" ) ) {
 		R_LevelShot();

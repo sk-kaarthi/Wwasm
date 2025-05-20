@@ -3569,6 +3569,11 @@ void CL_Video_f( void )
 	char  filename[ MAX_OSPATH ];
 	int   i, last;
 
+#ifdef __EMSCRIPTEN__
+	Com_Printf("Video recording is disabled in Wwasm.\n");
+	return;
+#endif
+
 	if( !clc.demoplaying )
 	{
 		Com_Printf( "The video command can only be used when playing back demos\n" );
