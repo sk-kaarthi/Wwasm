@@ -34,6 +34,10 @@ If you have questions concerning this license or the applicable additional terms
 #include "../sys/sys_local.h"
 #include "../sys/sys_loadlib.h"
 
+#ifdef __EMSCRIPTEN__
+#include "../sys/wasm_io.h"
+#endif
+
 #ifdef USE_MUMBLE
 #include "libmumblelink.h"
 #endif
@@ -149,6 +153,10 @@ qboolean			cl_oldGameSet;
 refexport_t re;
 #ifdef USE_RENDERER_DLOPEN
 static void	*rendererLib = NULL;
+#endif
+
+#ifdef __EMSCRIPTEN__
+static char rec_demo_path[MAX_OSPATH];
 #endif
 
 ping_t cl_pinglist[MAX_PINGREQUESTS];
@@ -675,6 +683,10 @@ void CL_StopRecord_f( void ) {
 	clc.demofile = 0;
 	clc.demorecording = qfalse;
 	Com_Printf( "Stopped demo.\n" );
+
+#ifdef __EMSCRIPTEN__
+	wasm_export_file(rec_demo_path);
+#endif
 }
 
 /*
@@ -774,6 +786,11 @@ void CL_Record_f( void ) {
 		Com_Printf( "ERROR: couldn't open.\n" );
 		return;
 	}
+
+#ifdef __EMSCRIPTEN__
+	Com_sprintf(rec_demo_path, sizeof(rec_demo_path), "/wwasm/%s/%s", FS_GetCurrentGameDir(), name);
+#endif
+
 	clc.demorecording = qtrue;
 	Q_strncpyz( clc.demoName, demoName, sizeof( clc.demoName ) );
 

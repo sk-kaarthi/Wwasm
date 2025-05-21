@@ -16,6 +16,7 @@ void wasm_init_fs(void);
 int wasm_restore_busy(void);
 void wasm_hide_console(void);
 void wasm_show_console(void);
+void wasm_export_file(char* filepath);
 void wasm_vid_resize(void);
 void wasm_capture_mouse(void);
 

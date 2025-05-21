@@ -61,6 +61,15 @@ void wasm_show_console(void)
 	);
 }
 
+void wasm_export_file(char* filepath)
+{
+	// Prompt the user to optionally save a file to the host filesystem
+	EM_ASM({
+		if (typeof Module.exportFile === 'function')
+			Module.exportFile(UTF8ToString($0));
+	}, filepath);
+}
+
 void wasm_vid_resize(void)
 {
 	// Notify JS after a resolution change

@@ -18,8 +18,8 @@ PK3 Prerequisites
 
 This project needs at least one `.pk3` resource file to run.  You can use any of the following:
 
-- The file from the freely available demonstration version
-- The files from the paid full versions of the game (combined with updates)
+- The file from the freely available demonstration version of the original game
+- The files from the paid full version of the original game, combined with updates
 - Third-party standalone files that are based on the *RTCW* engine
 
 Playing the Original RTCW Demonstration Version
@@ -47,7 +47,7 @@ Transfer the file to Wwasm:
 
 Then build the project.  Note that updates are not required for the demo.
 
-When viewing the completed build, you will need to switch `com_basegame` to `demomain`, as specified in the command-line example.
+When viewing the completed build in a browser, you will need to set `com_basegame` to `demomain`, as specified in the command-line example.
 
 Playing the Original RTCW Full Game
 -----------------------------------
@@ -119,6 +119,27 @@ Physical Gamepads & Joysticks
 Attached gamepads and analogue controls should work, providing your browser supports their functionality.
 
 To activate a controller, press a button on it during play.  You can also physically connect or disconnect controllers after the game starts, and the change should be recognised automatically.
+
+Recording Demos
+---------------
+
+Recording demos is supported.
+
+You can create a demo by starting the game, opening the console with the key above `TAB` (usually the tilde or backquote key), and then typing something like this:
+
+    record mydemo
+
+Then to stop:
+
+    stoprecord
+
+The file will be saved in the browser database, but you will also be given the opportunity to export it if you want to.
+
+The demo can be played back later by typing this in the console:
+
+    demo mydemo
+
+Playing back a demo will permanently stop any game in progress.
 
 Known Issues / Workarounds
 --------------------------
@@ -219,7 +240,7 @@ Other READMEs
 Some READMEs have been renamed to avoid conflicts:
 
 - The `README.txt` file for id Software's *Return to Castle Wolfenstein* Single Player code is now named `README-id.txt`.
-- The `README.md` file for iortcw is now named `README-iortcw.md`.
+- The `README.md` file for *iortcw* is now named `README-iortcw.md`.
 
 -----
 
